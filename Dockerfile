@@ -1,34 +1,28 @@
-# 1️⃣ Usamos la imagen oficial de Gradle con Java 17
+# 1️⃣ Usamos la imagen oficial de Gradle con Java 17 para compilar
 FROM gradle:8.5-jdk17 AS build
 
-# 2️⃣ Establecemos el directorio de trabajo en MAIN
+# 2️⃣ Establecemos el directorio de trabajo
 WORKDIR /app
 
-# 3️⃣ Copiamos solo los archivos de configuración de Gradle primero (aprovechando la cache)
+# 3️⃣ Copiamos los archivos de configuración de Gradle
 COPY build.gradle settings.gradle ./
 
 # 4️⃣ Copiamos el código fuente
 COPY src ./src
 
-# 5️⃣ Construimos el proyecto (genera el JAR)
-# sin vaadin
-#RUN gradle build -x test --no-daemon
-#con vaadin
-RUN gradle vaadinBuild build -x test --no-daemon
+# 5️⃣ Construimos el proyecto (esto genera el JAR)
+RUN gradle build -x test --no-daemon
 
 # 6️⃣ Usamos una imagen más liviana de OpenJDK 17 para ejecutar el JAR
 FROM openjdk:17-jdk-slim
 
 WORKDIR /app
 
-# 7️⃣ Copiamos el archivo JAR desde la etapa de build
+# 7️⃣ Copiamos el archivo JAR desde la etapa de compilación
 COPY --from=build /app/build/libs/*.jar app.jar
 
 # 8️⃣ Exponemos el puerto 8080
 EXPOSE 8080
 
-# 9️⃣ Ejecutamos la aplicación asegurando el puerto correcto
+# 9️⃣ Ejecutamos la aplicación
 CMD ["java", "-jar", "app.jar", "--server.port=8080"]
-
-# 10️⃣ Definimos variables de entorno para la conexión a PostgreSQL
-#ENV SPRING_DATASOURCE_URL=jdbc:postgresql://dpg-d0rsa7i4d50c73b0tm50-a.oregon-postgres.render.com:5432/transporte_app
