@@ -17,7 +17,7 @@ public class AuthController {
     private final AuthService authService;
 
 //   @PostMapping(value="auth/login")
-   @PostMapping(value="prueba/login")
+   @PostMapping(value="auth/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request){
         AuthResponse response = authService.login(request);
         System.out.println("Login realizado: usuario=" + request.getUsername());
@@ -26,7 +26,7 @@ public class AuthController {
     }
 
 //   @PostMapping(value="admins/register")
-   @PostMapping(value="prueba/register")
+   @PostMapping(value="auth/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request){
         AuthResponse response = authService.register(request);
         System.out.println("Registro realizado: usuario=" + request.getUsername());
