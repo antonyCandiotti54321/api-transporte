@@ -4,6 +4,7 @@ import com.antonycandiotti.api_transporte.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -49,10 +50,13 @@ public class SecurityConfig {
                         ).permitAll()
                         // tus APIs
                         .requestMatchers("/index/**").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers("/api/auth/register").hasRole("ADMIN")
                         .requestMatchers("/api/health/**").permitAll()
                         .requestMatchers("/ping/**").permitAll()
-                        .requestMatchers("/api/usuarios/**").hasAnyRole("ADMIN", "CHOFER")
+                        .requestMatchers(HttpMethod.GET,"/api/usuarios/**").hasAnyRole("ADMIN", "CHOFER")
+                        .requestMatchers(HttpMethod.DELETE,"/api/usuarios/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH,"/api/usuarios/**").hasRole("ADMIN")
                         .requestMatchers("/api/admins/**").hasRole("ADMIN")
                         .requestMatchers("/api/choferes/**").hasAnyRole("ADMIN", "CHOFER")
                         .requestMatchers("/api/operarios/**").hasAnyRole("ADMIN", "CHOFER")
