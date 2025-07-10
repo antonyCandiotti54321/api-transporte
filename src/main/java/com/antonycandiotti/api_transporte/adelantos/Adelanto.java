@@ -36,9 +36,6 @@ public class Adelanto {
 
     private String mensaje;
 
-    @Column(name = "nombre_completo", nullable = false)
-    private String nombreCompleto;
-
     @Column(name = "fecha_hora", nullable = false)
     private LocalDateTime fechaHora;
 }

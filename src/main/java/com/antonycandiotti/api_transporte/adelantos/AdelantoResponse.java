@@ -20,6 +20,5 @@ public class AdelantoResponse {
     private String operarioNombre;
     private Double cantidad;
     private String mensaje;
-    private String nombreCompleto;
     private LocalDateTime fechaHora;
 }

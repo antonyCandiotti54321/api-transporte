@@ -31,12 +31,12 @@ public class AdelantoService {
                 .operario(operario)
                 .cantidad(request.getCantidad())
                 .mensaje(request.getMensaje())
-                .nombreCompleto(request.getNombreCompleto())
                 .fechaHora(LocalDateTime.now())
                 .build();
 
         return toResponse(adelantoRepository.save(adelanto));
     }
+
 
     public List<AdelantoResponse> findAll() {
         return adelantoRepository.findAll()
@@ -57,7 +57,6 @@ public class AdelantoService {
 
         adelanto.setCantidad(request.getCantidad());
         adelanto.setMensaje(request.getMensaje());
-        adelanto.setNombreCompleto(request.getNombreCompleto());
 
         if (!adelanto.getUsuario().getId().equals(request.getUsuarioId())) {
             Usuario usuario = usuarioRepository.findById(request.getUsuarioId())
@@ -73,6 +72,7 @@ public class AdelantoService {
 
         return toResponse(adelantoRepository.save(adelanto));
     }
+
 
     public void delete(Long id) {
         if (!adelantoRepository.existsById(id)) {
@@ -90,7 +90,6 @@ public class AdelantoService {
                 .operarioNombre(adelanto.getOperario().getNombreCompleto())
                 .cantidad(adelanto.getCantidad())
                 .mensaje(adelanto.getMensaje())
-                .nombreCompleto(adelanto.getNombreCompleto())
                 .fechaHora(adelanto.getFechaHora())
                 .build();
     }

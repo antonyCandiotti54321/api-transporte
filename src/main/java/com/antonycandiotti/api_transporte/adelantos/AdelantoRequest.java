@@ -22,7 +22,4 @@ public class AdelantoRequest {
     private Double cantidad;
 
     private String mensaje;
-
-    @NotBlank
-    private String nombreCompleto;
 }
