@@ -15,7 +15,9 @@ import java.time.LocalDateTime;
 public class AdelantoResponse {
     private Long id;
     private Long usuarioId;
+    private String usuarioNombre;
     private Long operarioId;
+    private String operarioNombre;
     private Double cantidad;
     private String mensaje;
     private String nombreCompleto;
