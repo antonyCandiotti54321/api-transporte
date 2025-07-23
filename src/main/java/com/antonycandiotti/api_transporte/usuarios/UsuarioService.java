@@ -38,8 +38,13 @@ public class UsuarioService {
             usuario.setRol(update.getRol());
         }
 
+        if (update.getUsername() != null && !update.getUsername().isBlank()) {
+            usuario.setUsername(update.getUsername().trim());
+        }
+
         return usuarioRepository.save(usuario);
     }
+
 
     public void deleteById(Long id) {
         if (!usuarioRepository.existsById(id)) {
