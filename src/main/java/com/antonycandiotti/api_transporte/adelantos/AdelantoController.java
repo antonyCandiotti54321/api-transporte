@@ -29,7 +29,7 @@ public class AdelantoController {
         return ResponseEntity.ok(adelantoService.findById(id));
     }
 
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<AdelantoResponse> update(@PathVariable Long id, @RequestBody @Valid AdelantoRequest request) {
         return ResponseEntity.ok(adelantoService.update(id, request));
     }
