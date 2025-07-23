@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 
 @Data
@@ -37,5 +38,6 @@ public class Adelanto {
     private String mensaje;
 
     @Column(name = "fecha_hora", nullable = false)
-    private LocalDateTime fechaHora;
+    private ZonedDateTime fechaHora;
+
 }

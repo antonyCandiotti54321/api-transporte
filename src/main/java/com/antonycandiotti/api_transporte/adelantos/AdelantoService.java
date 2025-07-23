@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,7 +32,7 @@ public class AdelantoService {
                 .operario(operario)
                 .cantidad(request.getCantidad())
                 .mensaje(request.getMensaje())
-                .fechaHora(LocalDateTime.now())
+                .fechaHora(ZonedDateTime.now(ZoneId.of("America/Lima"))) // <--- zona horaria fija
                 .build();
 
         return toResponse(adelantoRepository.save(adelanto));
