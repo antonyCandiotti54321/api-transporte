@@ -8,4 +8,6 @@ public interface AdelantoRepository extends JpaRepository<Adelanto,Long> {
     List<Adelanto> findByUsuarioId(Long usuarioId);
 
     List<Adelanto> findByOperarioId(Long operarioId);
+    long count();
+
 }

@@ -6,4 +6,6 @@ import java.util.Optional;
 
 public interface OperarioRepository extends JpaRepository<Operario,Long> {
     Optional<Operario> findByNombreCompleto(String nombreCompleto);
+    boolean existsByNombreCompleto(String nombreCompleto);
+
 }
