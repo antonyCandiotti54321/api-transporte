@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Data
 @NoArgsConstructor
@@ -20,5 +21,7 @@ public class AdelantoResponse {
     private String operarioNombre;
     private Double cantidad;
     private String mensaje;
-    private LocalDateTime fechaHora;
+
+    // Cambiar de LocalDateTime a ZonedDateTime
+    private ZonedDateTime fechaHora;
 }
