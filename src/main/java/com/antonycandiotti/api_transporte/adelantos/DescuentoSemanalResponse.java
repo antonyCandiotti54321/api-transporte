@@ -5,14 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.time.LocalDate;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class OperarioDescuentoResponse {
-    private Long operarioId;
-    private String nombreCompleto;
-    private List<DescuentoSemanalResponse> semanas;
+public class DescuentoSemanalResponse {
+    private LocalDate inicioSemana;
+    private LocalDate finSemana;
+    private Double totalDescuento;
 }

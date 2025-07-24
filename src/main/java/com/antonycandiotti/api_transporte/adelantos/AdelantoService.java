@@ -7,10 +7,11 @@ import com.antonycandiotti.api_transporte.usuarios.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
+import java.time.temporal.TemporalAdjusters;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -114,16 +115,37 @@ public class AdelantoService {
 
         return operarios.stream().map(operario -> {
             List<Adelanto> adelantos = adelantoRepository.findByOperarioId(operario.getId());
-            double total = adelantos.stream()
-                    .mapToDouble(Adelanto::getCantidad)
-                    .sum();
+
+            // Agrupar por semana laboral (sábado a viernes)
+            Map<String, List<Adelanto>> agrupadoPorSemana = adelantos.stream()
+                    .collect(Collectors.groupingBy(adelanto -> {
+                        ZonedDateTime fecha = adelanto.getFechaHora();
+                        ZonedDateTime sabado = fecha.with(TemporalAdjusters.previousOrSame(DayOfWeek.SATURDAY));
+                        ZonedDateTime viernes = sabado.plusDays(6);
+                        return sabado.toLocalDate() + "_" + viernes.toLocalDate();
+                    }));
+
+            List<DescuentoSemanalResponse> semanas = agrupadoPorSemana.entrySet().stream()
+                    .map(entry -> {
+                        String[] partes = entry.getKey().split("_");
+                        LocalDate inicioSemana = LocalDate.parse(partes[0]);
+                        LocalDate finSemana = LocalDate.parse(partes[1]);
+                        double total = entry.getValue().stream()
+                                .mapToDouble(Adelanto::getCantidad)
+                                .sum();
+                        return new DescuentoSemanalResponse(inicioSemana, finSemana, total);
+                    })
+                    .sorted(Comparator.comparing(DescuentoSemanalResponse::getInicioSemana)) // opcional
+                    .collect(Collectors.toList());
+
             return OperarioDescuentoResponse.builder()
                     .operarioId(operario.getId())
                     .nombreCompleto(operario.getNombreCompleto())
-                    .totalDescuento(total)
+                    .semanas(semanas)
                     .build();
         }).collect(Collectors.toList());
     }
+
 
 
 }
