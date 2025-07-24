@@ -6,6 +6,7 @@ import com.antonycandiotti.api_transporte.usuarios.Usuario;
 import com.antonycandiotti.api_transporte.usuarios.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.*;
 import java.time.temporal.TemporalAdjusters;
@@ -146,6 +147,11 @@ public class AdelantoService {
         }).collect(Collectors.toList());
     }
 
+
+    @Transactional
+    public void deleteAdelantosPorSemana(ZonedDateTime inicio, ZonedDateTime fin) {
+        adelantoRepository.deleteByFechaHoraBetween(inicio, fin);
+    }
 
 
 }

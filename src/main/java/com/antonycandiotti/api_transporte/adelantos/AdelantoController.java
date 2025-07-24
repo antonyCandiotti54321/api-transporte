@@ -51,5 +51,10 @@ public class AdelantoController {
         return ResponseEntity.ok(adelantoService.getTotalDescuentosPorOperario());
     }
 
+    @DeleteMapping("/descuentos")
+    public ResponseEntity<Void> deleteAdelantosPorSemana(@RequestBody EliminarSemanaRequest request) {
+        adelantoService.deleteAdelantosPorSemana(request.getFechaInicio(), request.getFechaFin());
+        return ResponseEntity.noContent().build();
+    }
 
 }
