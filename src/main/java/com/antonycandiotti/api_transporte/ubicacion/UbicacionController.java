@@ -11,9 +11,12 @@ public class UbicacionController {
 
     @MessageMapping("/ubicacion")  // Recibe mensajes en /app/ubicacion
     @SendTo("/topic/ubicacion")    // Reenvía a todos suscritos en /topic/ubicacion
-    public UbicacionDTO recibirUbicacion(@Valid UbicacionDTO ubicacion) throws Exception {
-        // Aquí puedes guardar en BD o procesar
-        System.out.println("Ubicación recibida: " + ubicacion.getId() + ", " + ubicacion.getLatitud() + ", " + ubicacion.getLongitud());
-        return ubicacion; // Esto se envía a todos los clientes conectados
+    public UbicacionesPaqueteDTO recibirUbicaciones(@Valid UbicacionesPaqueteDTO paquete) {
+        System.out.println("📦 Paquete recibido del ID: " + paquete.getId());
+        paquete.getUbicaciones().forEach(ubicacion ->
+                System.out.println(" - Lat: " + ubicacion.getLatitud() + ", Lng: " + ubicacion.getLongitud())
+        );
+        // Puedes guardar aquí las ubicaciones si lo deseas
+        return paquete;
     }
 }

@@ -13,8 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UbicacionDTO {
-    @NotNull(message = "El ID es obligatorio")
-    private Long id;        // ID del camión o celular
+
     @DecimalMin(value = "-90.0", message = "La latitud mínima es -90")
     @DecimalMax(value = "90.0", message = "La latitud máxima es 90")
     private double latitud;
