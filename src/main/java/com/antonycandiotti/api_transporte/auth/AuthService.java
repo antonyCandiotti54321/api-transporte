@@ -6,6 +6,7 @@ import com.antonycandiotti.api_transporte.usuarios.Rol;
 import com.antonycandiotti.api_transporte.usuarios.Usuario;
 import com.antonycandiotti.api_transporte.usuarios.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -13,6 +14,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 
 @Service
@@ -24,8 +26,14 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final UsuarioRepository usuarioRepository;
 
+
     public AuthResponse login(LoginRequest request) {
-        // 1. Autenticación
+        // 1. Verificar si existe el usuario
+        Usuario usuario = usuarioRepository
+                .findByUsername(request.getUsername())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "El usuario no existe"));
+
+        // 2. Verificar contraseña (autenticación)
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -34,13 +42,8 @@ public class AuthService {
                     )
             );
         } catch (AuthenticationException ex) {
-            throw new RuntimeException("Credenciales incorrectas");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Contraseña incorrecta");
         }
-
-        // 2. Cargar Usuario completo
-        Usuario usuario = usuarioRepository
-                .findByUsername(request.getUsername())
-                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
 
         // 3. Extraer datos
         Long idUsuario = usuario.getId();
@@ -55,7 +58,7 @@ public class AuthService {
                 .token(token)
                 .idUsuario(idUsuario)
                 .nombreCompleto(nombreCompleto)
-                .rol(rol) // O usar rol.toString()
+                .rol(rol)
                 .build();
     }
 
