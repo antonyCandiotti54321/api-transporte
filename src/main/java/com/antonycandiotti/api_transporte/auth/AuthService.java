@@ -8,6 +8,7 @@ import com.antonycandiotti.api_transporte.usuarios.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -50,9 +51,12 @@ public class AuthService {
                     )
             );
             System.out.println("✅ Contraseña correcta");
-        } catch (AuthenticationException ex) {
+        } catch (BadCredentialsException ex) {
             System.out.println("❌ Contraseña incorrecta para usuario: " + request.getUsername());
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Contraseña incorrecta");
+        } catch (AuthenticationException ex) {
+            System.out.println("❌ Error de autenticación general: " + ex.getMessage());
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Error al autenticar");
         }
 
         // 3. Extraer datos
@@ -76,6 +80,7 @@ public class AuthService {
         System.out.println("✅ Login exitoso para " + request.getUsername());
         return response;
     }
+
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
