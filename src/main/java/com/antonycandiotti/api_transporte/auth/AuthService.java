@@ -28,20 +28,30 @@ public class AuthService {
 
 
     public AuthResponse login(LoginRequest request) {
+        System.out.println("➡️ Iniciando login para usuario: " + request.getUsername());
+
         // 1. Verificar si existe el usuario
         Usuario usuario = usuarioRepository
                 .findByUsername(request.getUsername())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "El usuario no existe"));
+                .orElseThrow(() -> {
+                    System.out.println("❌ Usuario no encontrado: " + request.getUsername());
+                    return new ResponseStatusException(HttpStatus.NOT_FOUND, "El usuario no existe");
+                });
+
+        System.out.println("✅ Usuario encontrado: " + usuario.getUsername());
 
         // 2. Verificar contraseña (autenticación)
         try {
+            System.out.println("🔐 Verificando contraseña...");
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             request.getUsername(),
                             request.getPassword()
                     )
             );
+            System.out.println("✅ Contraseña correcta");
         } catch (AuthenticationException ex) {
+            System.out.println("❌ Contraseña incorrecta para usuario: " + request.getUsername());
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Contraseña incorrecta");
         }
 
@@ -49,17 +59,22 @@ public class AuthService {
         Long idUsuario = usuario.getId();
         String nombreCompleto = usuario.getNombreCompleto();
         Rol rol = usuario.getRol();
+        System.out.println("📦 Datos extraídos: ID=" + idUsuario + ", nombre=" + nombreCompleto + ", rol=" + rol);
 
         // 4. Generar token
         String token = jwtService.getToken(usuario);
+        System.out.println("🔑 Token generado exitosamente");
 
         // 5. Construir respuesta
-        return AuthResponse.builder()
+        AuthResponse response = AuthResponse.builder()
                 .token(token)
                 .idUsuario(idUsuario)
                 .nombreCompleto(nombreCompleto)
                 .rol(rol)
                 .build();
+
+        System.out.println("✅ Login exitoso para " + request.getUsername());
+        return response;
     }
 
     @Transactional
