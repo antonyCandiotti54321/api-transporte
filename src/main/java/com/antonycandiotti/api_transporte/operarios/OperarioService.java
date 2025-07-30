@@ -36,15 +36,12 @@ public class OperarioService {
                 .orElseThrow(() -> new RuntimeException("Operario no encontrado"));
 
         if (update.getNombreCompleto() != null) {
-            String nuevoNombre = update.getNombreCompleto().trim();
-            if (nuevoNombre.length() < 3 || nuevoNombre.length() > 50) {
-                throw new IllegalArgumentException("El nombre completo debe tener entre 3 y 50 caracteres");
-            }
-            operario.setNombreCompleto(nuevoNombre);
+            operario.setNombreCompleto(update.getNombreCompleto().trim());
         }
 
         return operarioRepository.save(operario);
     }
+
 
     @Transactional
     public void deleteOperario(Long id) {
