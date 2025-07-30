@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OperarioCreate {
-    @NotBlank
+    @NotBlank(message = "El nombre no puede estar vacío")
     private String nombreCompleto;
 }

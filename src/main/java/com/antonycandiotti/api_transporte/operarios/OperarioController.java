@@ -33,7 +33,7 @@ public class OperarioController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PatchMapping("/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<Operario> updateOperario(@PathVariable Long id, @RequestBody OperarioUpdate request) {
         return ResponseEntity.ok(operarioService.updateOperario(id, request));
     }
