@@ -30,6 +30,9 @@ public class JwtService {
         // Tipo igual al rol, ya que ya no hay relación con Empleado
         extraClaims.put("type", usuario.getRol().name());
 
+        // *** NUEVO: Agregar el ID del usuario ***
+        extraClaims.put("userId", usuario.getId());
+
         return getToken(extraClaims, usuario);
     }
 
@@ -46,6 +49,17 @@ public class JwtService {
                 .compact();
     }
 
+    public Long getUserIdFromToken(String token) {
+        return getClaim(token, claims -> {
+            Object userId = claims.get("userId");
+            if (userId instanceof Integer) {
+                return ((Integer) userId).longValue();
+            } else if (userId instanceof Long) {
+                return (Long) userId;
+            }
+            return null;
+        });
+    }
 
     public String getUsernameFromToken(String token) {
         return getClaim(token, Claims::getSubject);
