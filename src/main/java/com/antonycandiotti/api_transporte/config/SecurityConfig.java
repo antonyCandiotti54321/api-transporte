@@ -54,6 +54,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/register").hasRole("ADMIN")
                         .requestMatchers("/api/health/**").permitAll()
                         .requestMatchers("/ping/**").permitAll()
+                        // Nuevos endpoints de base de datos - solo ADMIN
+                        .requestMatchers("/api/database/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET,"/api/usuarios/**").hasAnyRole("ADMIN", "CHOFER")
                         .requestMatchers(HttpMethod.DELETE,"/api/usuarios/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH,"/api/usuarios/**").hasRole("ADMIN")
