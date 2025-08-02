@@ -45,11 +45,24 @@ public class UsuarioService {
         return usuarioRepository.save(usuario);
     }
 
-
     public void deleteById(Long id) {
         if (!usuarioRepository.existsById(id)) {
             throw new RuntimeException("Usuario no encontrado");
         }
+
+        // Verificar si el usuario a eliminar es ADMIN
+        Usuario usuarioAEliminar = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        if (usuarioAEliminar.getRol() == Rol.ADMIN) {
+            // Contar cuántos administradores existen actualmente
+            long cantidadAdmins = usuarioRepository.countByRol(Rol.ADMIN);
+
+            if (cantidadAdmins <= 1) {
+                throw new UltimoAdministradorException("No puedes eliminar el último administrador");
+            }
+        }
+
         usuarioRepository.deleteById(id);
     }
 }
