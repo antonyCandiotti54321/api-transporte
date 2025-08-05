@@ -8,7 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+
 import java.time.ZonedDateTime;
 
 
@@ -39,5 +39,13 @@ public class Adelanto {
 
     @Column(name = "fecha_hora", nullable = false)
     private ZonedDateTime fechaHora;
+
+    @Column(name = "fecha_actualizacion")
+    private ZonedDateTime fechaActualizacion;
+
+    @PreUpdate
+    protected void onUpdate() {
+        fechaActualizacion = ZonedDateTime.now(java.time.ZoneId.of("America/Lima"));
+    }
 
 }

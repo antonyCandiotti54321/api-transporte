@@ -35,12 +35,11 @@ public class AdelantoService {
                 .operario(operario)
                 .cantidad(request.getCantidad())
                 .mensaje(request.getMensaje())
-                .fechaHora(ZonedDateTime.now(ZoneId.of("America/Lima"))) // <--- zona horaria fija
+                .fechaHora(ZonedDateTime.now(ZoneId.of("America/Lima")))
                 .build();
 
         return toResponse(adelantoRepository.save(adelanto));
     }
-
 
     public List<AdelantoResponse> findAll() {
         return adelantoRepository.findAll()
@@ -77,7 +76,6 @@ public class AdelantoService {
         return toResponse(adelantoRepository.save(adelanto));
     }
 
-
     public void delete(Long id) {
         if (!adelantoRepository.existsById(id)) {
             throw new RuntimeException("Adelanto no encontrado");
@@ -95,10 +93,9 @@ public class AdelantoService {
                 .cantidad(adelanto.getCantidad())
                 .mensaje(adelanto.getMensaje())
                 .fechaHora(adelanto.getFechaHora())
+                .fechaActualizacion(adelanto.getFechaActualizacion())
                 .build();
     }
-
-
 
     public List<AdelantoResponse> getAdelantosPorUsuario(Long usuarioId) {
         Usuario usuario = usuarioRepository.findById(usuarioId)
@@ -136,7 +133,7 @@ public class AdelantoService {
                                 .sum();
                         return new DescuentoSemanalResponse(inicioSemana, finSemana, total);
                     })
-                    .sorted(Comparator.comparing(DescuentoSemanalResponse::getInicioSemana)) // opcional
+                    .sorted(Comparator.comparing(DescuentoSemanalResponse::getInicioSemana))
                     .collect(Collectors.toList());
 
             return OperarioDescuentoResponse.builder()
@@ -147,11 +144,8 @@ public class AdelantoService {
         }).collect(Collectors.toList());
     }
 
-
     @Transactional
     public void deleteAdelantosPorSemana(ZonedDateTime inicio, ZonedDateTime fin) {
         adelantoRepository.deleteByFechaHoraBetween(inicio, fin);
     }
-
-
 }
