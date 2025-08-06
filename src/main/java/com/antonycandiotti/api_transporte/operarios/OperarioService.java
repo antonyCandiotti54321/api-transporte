@@ -1,6 +1,9 @@
 package com.antonycandiotti.api_transporte.operarios;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,9 +24,19 @@ public class OperarioService {
     }
 
     @Transactional(readOnly = true)
-    public List<Operario> getAllOperarios() {
-        return operarioRepository.findAll();
+    public Page<Operario> getAllOperarios(Long id, String nombreCompleto, Pageable pageable) {
+        if (id != null) {
+            return operarioRepository.findById(id)
+                    .map(op -> new PageImpl<>(List.of(op), pageable, 1))
+                    .orElse(new PageImpl<>(List.of(), pageable, 0));  // Solución correcta aquí
+        } else if (nombreCompleto != null && !nombreCompleto.isBlank()) {
+            return operarioRepository.findByNombreCompletoContainingIgnoreCase(nombreCompleto, pageable);
+        } else {
+            return operarioRepository.findAll(pageable);
+        }
     }
+
+
 
     @Transactional(readOnly = true)
     public Optional<Operario> getOperarioById(Long id) {

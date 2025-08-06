@@ -7,6 +7,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.Sort;
+
 
 @RestController
 @RequestMapping("api/operarios")
@@ -15,16 +20,24 @@ public class OperarioController {
 
     private final OperarioService operarioService;
 
+
+    @GetMapping
+    public ResponseEntity<Page<Operario>> getAllOperarios(
+            @PageableDefault(size = 10, sort = "id") Pageable pageable,
+            @RequestParam(required = false) Long id,
+            @RequestParam(required = false) String nombreCompleto
+    ) {
+        Page<Operario> page = operarioService.getAllOperarios(id, nombreCompleto, pageable);
+        return ResponseEntity.ok(page);
+    }
+
+
     @PostMapping
     public ResponseEntity<Operario> createOperario(@Valid @RequestBody OperarioCreate request) {
         Operario creado = operarioService.createOperario(request);
         return ResponseEntity.ok(creado);
     }
 
-    @GetMapping
-    public ResponseEntity<List<Operario>> getAllOperarios() {
-        return ResponseEntity.ok(operarioService.getAllOperarios());
-    }
 
     @GetMapping("/{id}")
     public ResponseEntity<Operario> getOperarioById(@PathVariable Long id) {
