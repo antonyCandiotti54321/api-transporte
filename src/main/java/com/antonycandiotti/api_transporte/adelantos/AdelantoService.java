@@ -5,6 +5,9 @@ import com.antonycandiotti.api_transporte.operarios.OperarioRepository;
 import com.antonycandiotti.api_transporte.usuarios.Usuario;
 import com.antonycandiotti.api_transporte.usuarios.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +26,7 @@ public class AdelantoService {
     private final UsuarioRepository usuarioRepository;
     private final OperarioRepository operarioRepository;
 
+    // Métodos originales sin cambios
     public AdelantoResponse create(AdelantoRequest request) {
         Usuario usuario = usuarioRepository.findById(request.getUsuarioId())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
@@ -39,13 +43,6 @@ public class AdelantoService {
                 .build();
 
         return toResponse(adelantoRepository.save(adelanto));
-    }
-
-    public List<AdelantoResponse> findAll() {
-        return adelantoRepository.findAll()
-                .stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
     }
 
     public AdelantoResponse findById(Long id) {
@@ -83,18 +80,109 @@ public class AdelantoService {
         adelantoRepository.deleteById(id);
     }
 
-    private AdelantoResponse toResponse(Adelanto adelanto) {
-        return AdelantoResponse.builder()
-                .id(adelanto.getId())
-                .usuarioId(adelanto.getUsuario().getId())
-                .usuarioNombre(adelanto.getUsuario().getNombreCompleto())
-                .operarioId(adelanto.getOperario().getId())
-                .operarioNombre(adelanto.getOperario().getNombreCompleto())
-                .cantidad(adelanto.getCantidad())
-                .mensaje(adelanto.getMensaje())
-                .fechaHora(adelanto.getFechaHora())
-                .fechaActualizacion(adelanto.getFechaActualizacion())
-                .build();
+    @Transactional
+    public void deleteAdelantosPorSemana(ZonedDateTime inicio, ZonedDateTime fin) {
+        adelantoRepository.deleteByFechaHoraBetween(inicio, fin);
+    }
+
+    // Métodos actualizados con paginación
+    @Transactional(readOnly = true)
+    public Page<AdelantoResponse> findAll(Long id, String usuarioNombre, String operarioNombre,
+                                          Double cantidadMin, Double cantidadMax, Pageable pageable) {
+
+        // Si se busca por ID específico
+        if (id != null) {
+            return adelantoRepository.findById(id)
+                    .map(adelanto -> new PageImpl<>(List.of(toResponse(adelanto)), pageable, 1))
+                    .orElse(new PageImpl<>(List.of(), pageable, 0));
+        }
+
+        Page<Adelanto> adelantosPage = adelantoRepository.findAllWithFilters(
+                null, usuarioNombre, operarioNombre, cantidadMin, cantidadMax, pageable);
+
+        return adelantosPage.map(this::toResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<AdelantoResponse> getAdelantosPorUsuario(Long usuarioId, String operarioNombre,
+                                                         Double cantidadMin, Double cantidadMax, Pageable pageable) {
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        Page<Adelanto> adelantosPage;
+
+        if (operarioNombre != null || cantidadMin != null || cantidadMax != null) {
+            adelantosPage = adelantoRepository.findByUsuarioIdWithFilters(
+                    usuarioId, operarioNombre, cantidadMin, cantidadMax, pageable);
+        } else {
+            adelantosPage = adelantoRepository.findByUsuarioId(usuarioId, pageable);
+        }
+
+        return adelantosPage.map(this::toResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<OperarioDescuentoResponse> getTotalDescuentosPorOperario(Long operarioId, String nombreCompleto, Pageable pageable) {
+        List<Operario> operarios;
+
+        if (operarioId != null) {
+            operarios = operarioRepository.findById(operarioId)
+                    .map(List::of)
+                    .orElse(List.of());
+        } else if (nombreCompleto != null && !nombreCompleto.isBlank()) {
+            operarios = operarioRepository.findByNombreCompletoContainingIgnoreCase(nombreCompleto, Pageable.unpaged())
+                    .getContent();
+        } else {
+            operarios = operarioRepository.findAll();
+        }
+
+        List<OperarioDescuentoResponse> responses = operarios.stream().map(operario -> {
+            List<Adelanto> adelantos = adelantoRepository.findByOperarioId(operario.getId());
+
+            // Agrupar por semana laboral (sábado a viernes)
+            Map<String, List<Adelanto>> agrupadoPorSemana = adelantos.stream()
+                    .collect(Collectors.groupingBy(adelanto -> {
+                        ZonedDateTime fecha = adelanto.getFechaHora();
+                        ZonedDateTime sabado = fecha.with(TemporalAdjusters.previousOrSame(DayOfWeek.SATURDAY));
+                        ZonedDateTime viernes = sabado.plusDays(6);
+                        return sabado.toLocalDate() + "_" + viernes.toLocalDate();
+                    }));
+
+            List<DescuentoSemanalResponse> semanas = agrupadoPorSemana.entrySet().stream()
+                    .map(entry -> {
+                        String[] partes = entry.getKey().split("_");
+                        LocalDate inicioSemana = LocalDate.parse(partes[0]);
+                        LocalDate finSemana = LocalDate.parse(partes[1]);
+                        double total = entry.getValue().stream()
+                                .mapToDouble(Adelanto::getCantidad)
+                                .sum();
+                        return new DescuentoSemanalResponse(inicioSemana, finSemana, total);
+                    })
+                    .sorted(Comparator.comparing(DescuentoSemanalResponse::getInicioSemana))
+                    .collect(Collectors.toList());
+
+            return OperarioDescuentoResponse.builder()
+                    .operarioId(operario.getId())
+                    .nombreCompleto(operario.getNombreCompleto())
+                    .semanas(semanas)
+                    .build();
+        }).collect(Collectors.toList());
+
+        // Aplicar paginación manual
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), responses.size());
+        List<OperarioDescuentoResponse> paginatedList = start >= responses.size() ?
+                List.of() : responses.subList(start, end);
+
+        return new PageImpl<>(paginatedList, pageable, responses.size());
+    }
+
+    // Métodos de compatibilidad (mantener funcionalidad existente)
+    public List<AdelantoResponse> findAll() {
+        return adelantoRepository.findAll()
+                .stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
     }
 
     public List<AdelantoResponse> getAdelantosPorUsuario(Long usuarioId) {
@@ -144,8 +232,17 @@ public class AdelantoService {
         }).collect(Collectors.toList());
     }
 
-    @Transactional
-    public void deleteAdelantosPorSemana(ZonedDateTime inicio, ZonedDateTime fin) {
-        adelantoRepository.deleteByFechaHoraBetween(inicio, fin);
+    private AdelantoResponse toResponse(Adelanto adelanto) {
+        return AdelantoResponse.builder()
+                .id(adelanto.getId())
+                .usuarioId(adelanto.getUsuario().getId())
+                .usuarioNombre(adelanto.getUsuario().getNombreCompleto())
+                .operarioId(adelanto.getOperario().getId())
+                .operarioNombre(adelanto.getOperario().getNombreCompleto())
+                .cantidad(adelanto.getCantidad())
+                .mensaje(adelanto.getMensaje())
+                .fechaHora(adelanto.getFechaHora())
+                .fechaActualizacion(adelanto.getFechaActualizacion())
+                .build();
     }
 }
