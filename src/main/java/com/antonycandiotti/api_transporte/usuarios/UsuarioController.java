@@ -1,3 +1,4 @@
+
 package com.antonycandiotti.api_transporte.usuarios;
 
 import com.antonycandiotti.api_transporte.jwt.JwtService;
@@ -5,11 +6,13 @@ import com.antonycandiotti.api_transporte.jwt.SecurityUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -22,8 +25,14 @@ public class UsuarioController {
     private final JwtService jwtService;
 
     @GetMapping
-    public List<Usuario> getAllUsuarios() {
-        return usuarioService.findAll();
+    public ResponseEntity<Page<Usuario>> getAllUsuarios(
+            @PageableDefault(size = 10, sort = "id") Pageable pageable,
+            @RequestParam(required = false) Long id,
+            @RequestParam(required = false) String nombreCompleto,
+            @RequestParam(required = false) Rol rol
+    ) {
+        Page<Usuario> page = usuarioService.getAllUsuarios(id, nombreCompleto, rol, pageable);
+        return ResponseEntity.ok(page);
     }
 
     @GetMapping("/{id}")
